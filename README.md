@@ -1,1 +1,1 @@
-# scoreboards
+# scoreboard

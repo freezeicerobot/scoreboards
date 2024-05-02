@@ -4,6 +4,7 @@ import time
 import os, platform, ctypes, sys, socket
 
 teams = ['HHS Lakers', 'SVHS Vikings', 'FCA Eagles', 'CICS Vikings', 'CRHS Tigers', 'WS Tunder', 'Mc Warriors', 'SRS Cougars', 'JCS Golden Knights', 'Fundy Mariners', 'HCS Huskies', 'VCA Eagles']
+file_paths = [f"c:/Users/{os.getenv('USERNAME')}/OneDrive/Documents/Scoreboard_saved_teams", f"c:/Users/{os.getenv('USERNAME')}/OneDrive/Documents/Scoreboard_saved_teams/team.txt"]
 files = 0
 volley_sets_home = 0
 volley_sets_away = 0
@@ -17,11 +18,16 @@ v_h_p_d = 'w'
 v_a_p_i = 'r'
 v_a_p_d = 't'
 filler = 0
+HOST = None
+PORT = 12345
 
 def find_server():
     global HOST, filler
     while True:  # Keep searching indefinitely
-        if filler < 999:
+        if filler == 255:
+            print(f"Server not found")
+            break
+        if filler < 255:
             filler += 1
         wifi_ip = get_ipv4_address()
         striped_server = wifi_ip.rstrip("1234567890")
@@ -33,7 +39,7 @@ def find_server():
 def ping_server():
     global HOST, PORT
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_socket.settimeout(0.002)  # Set timeout to 2 milliseconds (0.002 seconds)
+    client_socket.settimeout(5.000)  # Set timeout to 2 milliseconds (0.002 seconds)
     try:
         client_socket.connect((HOST, PORT))
         message = "server found"
@@ -44,17 +50,13 @@ def ping_server():
         print("Connection refused. Server is not available.")
         return False  # Server is not available
     except socket.timeout:
-        print("Socket connection timed out.")
+        print(f"Socket connection timed out.{HOST}:{PORT}")
         return False  # Connection timed out
     except Exception as e:
         print(f"Error occurred: {e}")
         return False  # Other errors, continue searching
     finally:
         client_socket.close()
-
-
-HOST = ''
-PORT = 65432
 
 def send_message(w):
     global volley_score_home, volley_score_away, home_team, away_team, volley_sets_home, volley_sets_away, ser
@@ -66,20 +68,22 @@ def send_message(w):
             message = str(w)
         if w == "basket":
             message = str(w)
-        if w == "vbhp":
+        if w == "vhp":
             message = f"{w} {volley_score_home}"
-        if w == "vbap":
+        if w == "vap":
             message = f"{w} {volley_score_away}"
-        if w == "vbhs":
+        if w == "vhs":
             message = f"{w} {volley_sets_home}"
-        if w == "vbas":
+        if w == "vas":
             message = f"{w} {volley_sets_away}"
-        if w == "vbsv":
-            message = f"{w} {ser}"
-        if w == "vbhn":
-            message = f"{w} {home_team}"
-        if w == "vban":
+        if w == "vsv":
+            message = "swap"
+        if w == "Hn":
+            message = f"{w} {home_team}" 
+        if w == "An":
             message = f"{w} {away_team}"
+        if w == "close":
+            message = str(w)
         client_socket.send(message.encode())
         print(f"Sent message to server: {message}")
     except ConnectionRefusedError:
@@ -138,12 +142,6 @@ def Checks_files(file_paths):
             else:
                 print("Note file already exists at", file_path)
     files += 2
-
-
-file_paths = [
-    f"c:/Users/{os.getenv('USERNAME')}/OneDrive/Documents/Scoreboard_saved_teams",
-    f"c:/Users/{os.getenv('USERNAME')}/OneDrive/Documents/Scoreboard_saved_teams/team.txt"
-]
 
 Checks_files(file_paths)
 
@@ -210,23 +208,25 @@ def reset_score_home(h):
     global volley_score_home, home_team
     volley_score_home = 0
     h.config(text =f"{home_team} {volley_score_home}")
+    send_message("vhp")
 
 def reset_score_away(a):
     global volley_score_away, away_team
     volley_score_away = 0
     a.config(text=f"{away_team} {volley_score_away}")
+    send_message("vap")
 
 def home_score_dis(i, h):
     global volley_score_home
     if i == 2:
         if volley_score_home < 99:
             volley_score_home += 1
-            send_message("vbhp")
+            send_message("vhp")
         h.config(text =f"{home_team} {volley_score_home}")
     else:
         if volley_score_home > 0:
             volley_score_home -= 1
-            send_message("vbhp")
+            send_message("vhp")
         h.config(text =f"{home_team} {volley_score_home}")
 
 def away_score_dis(i , a):
@@ -234,12 +234,12 @@ def away_score_dis(i , a):
     if i == 2:
         if volley_score_away < 99:
             volley_score_away += 1
-            send_message("vbap")
+            send_message("vap")
         a.config(text=f"{away_team} {volley_score_away}")
     else:
         if volley_score_away > 0:
             volley_score_away -= 1
-            send_message("vbap")
+            send_message("vap")
         a.config(text=f"{away_team} {volley_score_away}")
 
 def home_sets(i, h):
@@ -247,12 +247,12 @@ def home_sets(i, h):
     if i == 2:
         if volley_sets_home < 9:
             volley_sets_home += 1
-            send_message("vbhs")
+            send_message("vhs")
         h.config(text=f"{volley_sets_home} sets")
     else:
         if volley_sets_home > 0:
             volley_sets_home -= 1
-            send_message("vbhs")
+            send_message("vhs")
         h.config(text=f"{volley_sets_home} sets")
 
 def away_sets(i, h):
@@ -260,12 +260,12 @@ def away_sets(i, h):
     if i == 2:
         if volley_sets_away < 9:
             volley_sets_away += 1
-            send_message("vbas")
+            send_message("vas")
         h.config(text=f"{volley_sets_away} sets")
     else:
         if volley_sets_away > 0:
             volley_sets_away -= 1
-            send_message("vbas")
+            send_message("vas")
         h.config(text=f"{volley_sets_away} sets")
 
 def serving(i, s, h, a):
@@ -273,14 +273,14 @@ def serving(i, s, h, a):
     if i == 2:
         if ser != home_team:
             ser = home_team
-            send_message("vbsv")
+            send_message("vsv")
         s.config(text=f"{ser} is serving")
         a["state"] = "normal"
         h["state"] = "disable"
     else:
         if ser != away_team:
             ser = away_team
-            send_message("vbsv")
+            send_message("vsv")
         s.config(text=f"{ser} is serving")
         h["state"] = "normal"
         a["state"] = "disable"
@@ -304,7 +304,7 @@ def set_home_team(h, i, v, s):
         else:
             away_team = savename
     v.focus_set()
-    send_message("vbhn")
+    send_message("Hn")
 
 def set_away_team(a, i, v, s):
     global away_team, ser, home_team
@@ -324,29 +324,94 @@ def set_away_team(a, i, v, s):
         else:
             away_team = savename
     v.focus_set()
-    send_message("vban")
+    send_message("An")
 
+def closeing(m):
+    m.destroy()
+    send_message("close")
 
+def muilt_call(vhp,vap,vhs,vas,sh,sa,s,vf):
+    reset_score_board(vhp,vap,vhs,vas,sh,sa,s) 
+    closeing(vf)
+
+def input_ip(i, b, v, s, si):
+    global HOST
+    ip = i.get()
+    i.delete(0, END)
+    HOST = ip
+    state = ping_server()
+    if state == True:
+        b["state"] = "normal"
+        v["state"] = "normal"
+        s.config(text="connected", fg='#00FF00')
+        si.config(text="connected", fg='#00FF00')
+        return
+    if state == False:
+        b["state"] = "disable"
+        v["state"] = "disable"
+        s.config(text="Not Connected", fg='#FF0000')
+        si.config(text="Not Connected", fg='#FF0000')
+        return
     
+
 def main():
     root = tk.Tk()
-    root.title("Scoreboard_controller")
-    root.geometry("250x150")
+    root.title("VolleyBall Scoreboard controller")
+    root.geometry("250x200")
     root.config(bg='#36393e')
 
-    title_label = tk.Label(root, text="Please pick a scoreboard to use")
-    title_label.place(x=45, y=30)
+    title_label = tk.Label(root, text="Please pick a scoreboard to use", bg='#36393e', fg='#FFFFFF')
+    title_label.place(x=125, y=30, anchor = CENTER)
+
+    info_label = tk.Label(root, text="to pick a scoreboard you need to connect\nthe display. to start open the ip config tab", bg='#36393e', fg='#FFFFFF')
+    info_label.place(x=125, y=120, anchor = CENTER)
+
+    server_status_label = tk.Label(root, text="Connection status", bg='#36393e', fg='#FFFFFF')
+    server_status_label.place(x=60, y=160, anchor = CENTER)
+
+    status_label = tk.Label(root, text="Not Connected", bg='#36393e', fg='#FF0000')
+    status_label.place(x=60, y=180, anchor = CENTER)
 
     volleyball_button = tk.Button(root, text="Volleyball", command=show_volleyball_scoreboard)
-    volleyball_button.place(x=30, y=90)
+    volleyball_button.place(x=62.5, y=60, anchor = CENTER)
 
     basketball_button = tk.Button(root, text="Basketball", command=show_basketball_scoreboard)
-    basketball_button.place(x=30, y=60)
+    basketball_button.place(x=187.5, y=60, anchor = CENTER)
 
     Teams_config = tk.Button(root, text="Teams configs", command=Teams_configs)
-    Teams_config.place(x=110, y=60)
+    Teams_config.place(x=62.5, y=90, anchor = CENTER)
 
+    ip_config = tk.Button(root, text="IP configs", command = lambda: ip_configs(basketball_button, volleyball_button, status_label))
+    ip_config.place(x=187.5, y=90, anchor = CENTER)
+
+    basketball_button["state"] = "disable"
+    volleyball_button["state"] = "disable"
     root.mainloop()
+
+def ip_configs(b,v,s):
+    ip_configs = tk.Toplevel()
+    ip_configs.title("ip configs")
+    ip_configs.geometry("300x250")
+    ip_configs.focus_set()
+    ip_configs.config(bg='#36393e')
+
+    info_label = tk.Label(ip_configs, text="to get the ip of the display run the program.\nit should tell you a number to input into the text box.\nafter inputing the ip the main tab and here will have\ntheir status updated. but if it dosen't connect then you\nput it in wrong or it bugged.\nif it's bugged please report it on my github\nhttps://github.com/freezeicerobot/scoreboards", bg='#36393e', fg='#FFFFFF')
+    info_label.place(x=150, y=130, anchor = CENTER)
+
+    server_status_label = tk.Label(ip_configs, text="Connection status", bg='#36393e', fg='#FFFFFF')
+    server_status_label.place(x=120, y=210, anchor = CENTER)
+
+    status_label = tk.Label(ip_configs, text="Not Connected", bg='#36393e', fg='#FF0000')
+    status_label.place(x=120, y=230, anchor = CENTER)
+
+    back_button = tk.Button(ip_configs, text="Back", command=ip_configs.destroy)
+    back_button.place(x=30, y=230, anchor = CENTER)
+
+    team_input = tk.Button(ip_configs, text="input ip address", command = lambda: input_ip(ip_address_input, b, v, s, status_label))
+    team_input.place(x=60, y=60, anchor = CENTER)
+
+    ip_address_input = tk.Entry(ip_configs, width = 23)
+    ip_address_input.place(x=80, y=30, anchor = CENTER)
 
 def Teams_configs():
     Teams_configs = tk.Toplevel()
@@ -387,9 +452,10 @@ def show_volleyball_scoreboard():
     volleyball_frame.geometry("800x600")
     volleyball_frame.focus_set()
     volleyball_frame.config(bg='#36393e')
+    volleyball_frame.protocol("WM_DELETE_WINDOW", lambda: muilt_call(home_score, away_score, home_set, away_set, serving_home, serving_away, serve, volleyball_frame))
     setting = 2
 
-    back_button = tk.Button(volleyball_frame, text="Back", command=volleyball_frame.destroy)
+    back_button = tk.Button(volleyball_frame, text="Back", command = lambda: closeing(volleyball_frame))
     back_button.place(x=25, y=510)
 
     full_reset_button = tk.Button(volleyball_frame, text="Reset Scoreboard", command = lambda: reset_score_board(home_score, away_score, home_set, away_set, serving_home, serving_away, serve), font=(26))
@@ -472,6 +538,7 @@ def show_volleyball_scoreboard():
     volleyball_frame.bind(v_a_p_i, lambda event: away_increase_button.invoke())
     volleyball_frame.bind(v_a_p_d, lambda event: away_decrease_button.invoke())
 
+
         
 
     
@@ -490,7 +557,6 @@ def show_basketball_scoreboard():
     basketball_frame.focus_set()
 
 if __name__ == "__main__":
-    find_server ()
     if files >= 2:
         main()
     

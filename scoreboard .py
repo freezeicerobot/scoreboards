@@ -3,7 +3,7 @@ from tkinter import Tk, Button, Frame, ttk, messagebox, END, CENTER, filedialog
 import time
 import os, platform, ctypes, sys, socket
 
-teams = ['HHS Lakers', 'SVHS Vikings', 'FCA Eagles', 'CICS Vikings', 'CRHS Tigers', 'WS Tunder', 'Mc Warriors', 'SRS Cougars', 'JCS Golden Knights', 'Fundy Mariners', 'HCS Huskies', 'VCA Eagles']
+teams = ['HHS Lakers', 'SVHS Vikings', 'FCA Eagles', 'CICS Vikings', 'CRHS Tigers', 'WS Tunder', 'McAdam Warriors', 'SRS Cougars', 'JCS Golden Knights', 'Fundy Mariners', 'HCS Huskies', 'VCA Eagles', 'SdC Jaguars', 'SJDA Algonquins']
 file_paths = [f"c:/Users/{os.getenv('USERNAME')}/OneDrive/Documents/Scoreboard_saved_teams", f"c:/Users/{os.getenv('USERNAME')}/OneDrive/Documents/Scoreboard_saved_teams/team.txt"]
 files = 0
 volley_sets_home = 0
@@ -20,21 +20,6 @@ v_a_p_d = 't'
 filler = 0
 HOST = None
 PORT = 12345
-
-def find_server():
-    global HOST, filler
-    while True:  # Keep searching indefinitely
-        if filler == 255:
-            print(f"Server not found")
-            break
-        if filler < 255:
-            filler += 1
-        wifi_ip = get_ipv4_address()
-        striped_server = wifi_ip.rstrip("1234567890")
-        HOST = f'{striped_server}{filler}'
-        if ping_server():  # Ping the server and handle errors
-            print(f"Server found at {HOST}")
-            break  # Exit the loop once a server is found
 
 def ping_server():
     global HOST, PORT
@@ -90,18 +75,7 @@ def send_message(w):
         print("Connection refused. Server is not available.")
     finally:
         client_socket.close()
- 
-def get_ipv4_address():
-    # Create a temporary socket to get the local IP address
-    temp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try:
-        # Connect to any remote address (doesn't have to be reachable)
-        temp_socket.connect(("8.8.8.8", 80))
-        # Get the local IP address connected to the socket
-        ip_address = temp_socket.getsockname()[0]
-    finally:
-        temp_socket.close()
-    return ip_address
+
 
 def is_admin():
     try:
@@ -133,7 +107,8 @@ def Checks_files(file_paths):
                     os.makedirs(directory, exist_ok=True)
                     with open(file_path, "w") as file:
                         for team in teams:
-                            file.write(team+"\n")
+                            if team != "":
+                                file.write(team+"\n")
                 else:
                     print("Please run the script as an administrator to create this file.")
                     if not hasattr(sys, 'frozen'):
@@ -151,19 +126,15 @@ def add_new_teams(i, l):
     if team != "":
         i.delete(0, END)
         l.delete(0, END)
-        file = open(f"c:/Users/{os.getenv('USERNAME')}/OneDrive/Documents/Scoreboard_saved_teams/team.txt", 'r+')
-        file.write(team+ "\n")
-        Lines = file.readlines()
-        curret_line = 0
-        file.close()
-        file = open(f"c:/Users/{os.getenv('USERNAME')}/OneDrive/Documents/Scoreboard_saved_teams/team.txt", 'r+')
-        Lines = file.readlines()
-        curret_line = 0
-        l.delete(0, END)
-        for line in Lines:
-            curret_line += 1
-            l.insert(curret_line, line.strip())
-        file.close()
+        with open(f"c:/Users/{os.getenv('USERNAME')}/OneDrive/Documents/Scoreboard_saved_teams/team.txt", 'a') as file:
+            file.write("\n" + team)
+        with open(f"c:/Users/{os.getenv('USERNAME')}/OneDrive/Documents/Scoreboard_saved_teams/team.txt", 'r') as file:
+            lines = file.readlines()
+            curret_line = 1
+            for line in lines:
+                curret_line += 1
+                if line != "":
+                    l.insert(curret_line, line.strip())
 
 def remove_new_teams(l):
     team = l.get(l.curselection())
@@ -356,7 +327,7 @@ def input_ip(i, b, v, s, si):
 
 def main():
     root = tk.Tk()
-    root.title("VolleyBall Scoreboard controller")
+    root.title("main menu controller")
     root.geometry("250x200")
     root.config(bg='#36393e')
 
@@ -375,7 +346,7 @@ def main():
     volleyball_button = tk.Button(root, text="Volleyball", command=show_volleyball_scoreboard)
     volleyball_button.place(x=62.5, y=60, anchor = CENTER)
 
-    basketball_button = tk.Button(root, text="Basketball", command=show_basketball_scoreboard)
+    basketball_button = tk.Button(root, text="(WIP) Basketball (WIP)", command=show_basketball_scoreboard)
     basketball_button.place(x=187.5, y=60, anchor = CENTER)
 
     Teams_config = tk.Button(root, text="Teams configs", command=Teams_configs)
@@ -448,7 +419,7 @@ def Teams_configs():
 def show_volleyball_scoreboard():
     send_message("volley")
     volleyball_frame = tk.Toplevel()
-    volleyball_frame.title("Scoreboard controller")
+    volleyball_frame.title("VolleyBall Scoreboard controller")
     volleyball_frame.geometry("800x600")
     volleyball_frame.focus_set()
     volleyball_frame.config(bg='#36393e')
@@ -461,16 +432,16 @@ def show_volleyball_scoreboard():
     full_reset_button = tk.Button(volleyball_frame, text="Reset Scoreboard", command = lambda: reset_score_board(home_score, away_score, home_set, away_set, serving_home, serving_away, serve), font=(26))
     full_reset_button.place(x=620, y=490, width = 150, height = 75)
 
-    home_increase_button = tk.Button(volleyball_frame, text="+", command = lambda: home_score_dis(setting, home_score))  
+    home_increase_button = tk.Button(volleyball_frame, text="+ (Q)", command = lambda: home_score_dis(setting, home_score))  
     home_increase_button.place(x=78, y=100, width=75, height = 50, anchor = CENTER)
 
-    home_decrease_button = tk.Button(volleyball_frame, text="-", command = lambda: home_score_dis("filler", home_score))
+    home_decrease_button = tk.Button(volleyball_frame, text="- (W)", command = lambda: home_score_dis("filler", home_score))
     home_decrease_button.place(x=242, y=100, width=75, height = 50, anchor = CENTER)
 
-    away_increase_button = tk.Button(volleyball_frame, text="+", command = lambda: away_score_dis(setting, away_score))
+    away_increase_button = tk.Button(volleyball_frame, text="+ (R)", command = lambda: away_score_dis(setting, away_score))
     away_increase_button.place(x=378, y=100, width=75, height = 50, anchor = CENTER)
 
-    away_decrease_button = tk.Button(volleyball_frame, text="-", command = lambda: away_score_dis("filler", away_score))
+    away_decrease_button = tk.Button(volleyball_frame, text="- (T)", command = lambda: away_score_dis("filler", away_score))
     away_decrease_button.place(x=542, y=100, width=75, height = 50, anchor = CENTER)
 
     home_reset_button = tk.Button(volleyball_frame, text="Reset Score", command = lambda: reset_score_home(home_score))

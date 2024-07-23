@@ -65,7 +65,6 @@ def handle_client_connection(client_socket, client_address):
             print(f"Received message from client {client_address}: {data}")
             # Check if received data triggers displaying the Tkinter menu
             if data == "volley":
-                # Create and display a Tkinter menu
                 root = tk.Tk()
                 root.title("Volleyball Display")
                 root.geometry("350x75")
@@ -90,7 +89,6 @@ def handle_client_connection(client_socket, client_address):
                 serv.place(x=175, y=78, anchor = CENTER, height= 20)
                 root.mainloop()
             elif data == "basket":
-                # Create and display a Tkinter menu
                 root = tk.Tk()
                 root.title("Basket Display")
                 root.geometry("400x50")
@@ -136,8 +134,6 @@ def handle_client_connection(client_socket, client_address):
                 right = data.strip("abcdefghijklmnopqrstuvwxyz[] ")
                 team_op = data[:2]
                 team_name = data[3:]
-                print(left)
-                print(right)
                 if stat == 1:
                     if data == "swap":
                         stat = 0
@@ -229,10 +225,51 @@ def handle_client_connection(client_socket, client_address):
                     break
                 if left == "clock":
                     settime (times, right)
+                if left == "br" or left == "vr":
+                    full_reset(left)
             break
     # Close the connection with the client
     client_socket.close()
     print(f"Connection with {client_address} closed.")
+
+def full_reset(resetdata):
+    global root, home_score, home_sets, away_score, away_sets, home_scor, away_scor, home_teams, away_teams, home_set, away_set, home_team, away_team, serv, stat, quarters, away_timeouts, home_timeouts, away_fouls, home_fouls, quarter, away_timeout, home_timeout, away_foul, home_foul, timer, times, away_bonus, home_bonus, timer_running
+    stat = 0
+    home_score = 0
+    away_score = 0
+    home_sets = 0
+    away_sets = 0
+    home_team = "home"
+    away_team = "away"
+    home_fouls = 0
+    away_fouls = 0
+    home_timeouts = 0
+    away_timeouts = 0
+    quarters = 1
+    timer = [600]
+    timer_running = [False]
+    home_teams.config(text=f"{home_team}", bg='#0E559B', fg='#FFFFFF', font=('DejaVu Sans', 13))
+    away_teams.config(text=f"{away_team}", bg='#0E559B', fg='#FFFFFF', font=('DejaVu Sans', 13))
+    if resetdata == "br":
+        home_scor.config(text=f"{home_score}", bg='#1476CF', fg='#FFFFFF', font=('DejaVu Sans', 12))
+        away_scor.config(text=f"{away_score}", bg='#1476CF', fg='#FFFFFF', font=('DejaVu Sans', 12))
+        home_teams.config(text=f"{home_team}", bg='#0E559B', fg='#FFFFFF', font=('DejaVu Sans', 13))
+        away_teams.config(text=f"{away_team}", bg='#0E559B', fg='#FFFFFF', font=('DejaVu Sans', 13))
+        home_foul.config(text=f"Fouls: {home_fouls}", bg='#1476CF', fg='#FFFFFF', font=('DejaVu Sans', 10))
+        away_foul.config(text=f"Fouls: {away_fouls}", bg='#1476CF', fg='#FFFFFF', font=('DejaVu Sans', 10))
+        home_timeout.config(text=f"Timeout: {home_timeouts}", bg='#1476CF', fg='#FFFFFF', font=('DejaVu Sans', 10))
+        away_timeout.config(text=f"Timeout: {away_timeouts}", bg='#1476CF', fg='#FFFFFF', font=('DejaVu Sans', 10))
+        times.config(text=f"10:00", bg='#1476CF', fg='#FFFFFF', font=('DejaVu Sans', 12))
+        quarter.config(text=f"Q: {quarters}", bg='#1476CF', fg='#FFFFFF', font=('DejaVu Sans', 12))
+        away_bonus.place_forget()
+        home_bonus.place_forget()
+    elif resetdata == "vr":
+        home_scor.config(text=f"Score: {home_score}", bg='#1476CF', fg='#FFFFFF', font=('DejaVu Sans', 12))
+        away_scor.config(text=f"Score: {away_score}", bg='#1476CF', fg='#FFFFFF', font=('DejaVu Sans', 12))
+        home_set.config(text=f"Sets: {away_sets}", bg='#1476CF', fg='#FFFFFF', font=('DejaVu Sans', 12))
+        away_set.config(text=f"Sets: {away_sets}", bg='#1476CF', fg='#FFFFFF', font=('DejaVu Sans', 12))
+        serv.config(text="<", bg='#1476CF', fg='#FFFFFF', font=('DejaVu Sans', 16))
+
 
 def settime (t, s):
     global timer

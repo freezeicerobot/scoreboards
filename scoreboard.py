@@ -259,7 +259,7 @@ def reset_score_away(a, s):
     if s == "basket":
         basket_score_away = 0
         a.config(text =f"{away_team} {basket_score_home}")
-        send_message("bhp")
+        send_message("bap")
     else:
         volley_score_away = 0
         a.config(text=f"{away_team} {volley_score_away}")
@@ -391,10 +391,10 @@ def away_timeout(i, h):
 def setquarter(i, h):
     global quarter
     quarter += i
-    if basket_time_away < 1:
-        basket_time_away = 1
-    elif basket_time_away > 10:
-        basket_time_away = 10
+    if quarter <= 0:
+        quarter = 1
+    elif quarter > 10:
+        quarter = 10
     send_message("q")
     if quarter >= 5:
         h.config(text=f"quarter {quarter}\novertime")

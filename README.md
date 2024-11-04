@@ -1,2 +1,2 @@
-# scoreboard (wip)
+# scoreboard
 
